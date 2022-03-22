@@ -13,7 +13,6 @@ def play(board, err):
     if err == 1:
         print("Please enter a valid move.")
     move = input("Please enter your move (d7d6): ")
-    print(available_moves(board, "f8"))
     if check_input(board, move) == True:
         board = move_piece(board, move)
         play(board, 0)
@@ -63,56 +62,39 @@ def available_moves(board, location):
     col = cols.index(location[0])
     row = int(location[1]) - 1
     piece = b[row][col:col+1]
-
+    move_dict = {'p':1, 'P':-1,
+                'n':[(-1,-2),(-2,-1),(-2,1),(-1,2),(1,2),(2,1),(2,-1),(1,-2)],
+                'k':[(-1,-1),(-1,0),(-1,1),(0,-1),(0,1),(1,-1),(1,0),(1,1)]}
     moves = []
     
     if piece.lower() in  ['r', 'b', 'q']:
         return get_moves(board, location, piece)
     if piece.lower() == 'p':
         # Diagonal captures
-        if piece == 'p':
-            move_list = [(1,1), (1,-1)]
-        else:
-            move_list = [(-1,1), (-1,-1)]
+        move_list = move_dict[piece] * [(1,1), (1,-1)]
         for loc in move_list:
             if in_board(col + loc[0]) == True and in_board(row + loc[1]) == True:
                 if location_empty(board, row + loc[1], col + loc[0]) == False and same_team(b, piece, (loc[0], loc[1])) == False:
                     moves.append(loc_reformat(location, row + loc[1] + 1, col + loc[0] + 1))
                 else:
                     continue
-        # Checks up(-) for white
-        if piece == 'P':
-            for i in range(1,3):
-                if location_empty(board, row - i, col) == False:
-                    break
-                else:
-                    moves.append(loc_reformat(location, row - i + 1, col + 1))
-        # Down(+) for black
-        else:
-            for i in range(1,3):
-                if location_empty(board, row + i, col) == False:
-                    break
-                else:
-                    moves.append(loc_reformat(location, row + i + 1, col + 1))
-    if piece.lower() == 'n':
-        move_list = [(-1,-2),(-2,-1),(-2,1),(-1,2),(1,2),(2,1),(2,-1),(1,-2)]
-        for loc in move_list:
-            if in_board(row + loc[0]) == True and in_board(col + loc[1]) == True:
-                if location_empty(board, row + loc[0], col + loc[1]) == False:
-                    if same_team(b, piece, (row + loc[0], col + loc[1])) == False:
-                        moves.append(loc_reformat(location, col + loc[1], row + loc[0] + 1))
+        for i in range(1,3):
+            if location_empty(board, row + (i * move_dict[piece]), col) == False:
+                break
+            else:
+                moves.append(loc_reformat(location, row + (i * move_dict[piece]) + 1, col + 1))
+    else:
+        piece = piece.lower()
+        for i in range(0, len(move_dict[piece])):
+            if in_board(row + move_dict[piece][i][0]) == True and in_board(col + move_dict[piece][i][1]) == True:
+                if location_empty(board, row + move_dict[piece][i][0], col + move_dict[piece][i][1]) == False:
+                    if same_team(b, piece, (row + move_dict[piece][i][0], col + move_dict[piece][i][1])) == False:
+                        moves.append(loc_reformat(location, row + move_dict[piece][i][0] + 1, col + move_dict[piece][i][1] + 1))
                         continue
                     else:
                         continue
                 else:
-                    moves.append(loc_reformat(location, col + loc[1], row + loc[0] + 1))
-    if piece.lower() == 'k':
-        move_list = [(-1,-1),(-1,0),(-1,1),(0,-1),(0,1),(1,-1),(1,0),(1,1)]
-        for loc in move_list:
-            if location_empty(board, row + loc[1], col + loc[0]) == False:
-                continue
-            else:
-                moves.append(loc_reformat(location, col + loc[0], row + loc[1] + 1))
+                    moves.append(loc_reformat(location, row + move_dict[piece][i][0] + 1, col + move_dict[piece][i][1] + 1))
     return moves
 
 def loc_reformat(origin, row, col):
